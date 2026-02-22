@@ -4,6 +4,7 @@ import { useEntriesForDate } from '../hooks/useEntries';
 import { EntryList } from './EntryList';
 import { useStore } from '../store/useStore';
 import { colors, spacing, typography, radius } from '../constants/theme';
+import { PROGRAM, getDayColor } from '../constants/program';
 
 interface Props {
   dateStr: string;
@@ -19,7 +20,12 @@ function formatDayHeader(dateStr: string): string {
 
 export function DayDetail({ dateStr, onAddSet }: Props) {
   const { entries, loading } = useEntriesForDate(dateStr);
-  const bumpEntriesVersion = useStore((s) => s.bumpEntriesVersion);
+  const { bumpEntriesVersion, programDateMap } = useStore();
+
+  const programDayNum = programDateMap[dateStr];
+  const programDay = programDayNum != null
+    ? PROGRAM.find((d) => d.day === programDayNum) ?? null
+    : null;
 
   return (
     <View style={styles.container}>
@@ -29,6 +35,15 @@ export function DayDetail({ dateStr, onAddSet }: Props) {
           <Text style={styles.addBtnText}>+ Add Exercise</Text>
         </TouchableOpacity>
       </View>
+
+      {programDay && (
+        <View style={[styles.programBadge, { borderLeftColor: getDayColor(programDay.title) }]}>
+          <Text style={styles.programBadgeText}>
+            📋 Day {programDay.day} · {programDay.title}
+          </Text>
+        </View>
+      )}
+
       <EntryList entries={entries} loading={loading} onEntryAdded={bumpEntriesVersion} />
     </View>
   );
@@ -53,4 +68,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   addBtnText: { ...typography.bodyMed, color: colors.primary },
+  programBadge: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderLeftWidth: 3,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+  },
+  programBadgeText: {
+    ...typography.body,
+    color: colors.textSub,
+    fontSize: 12,
+  },
 });

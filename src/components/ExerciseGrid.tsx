@@ -38,11 +38,13 @@ export function ExerciseGrid({ onPressExercise }: Props) {
           onChangeText={setQuery}
         />
       </View>
-      <CategoryFilter
-        categories={CATEGORIES}
-        active={activeCategory}
-        onSelect={setActiveCategory}
-      />
+      <View style={styles.filterWrapper}>
+        <CategoryFilter
+          categories={CATEGORIES}
+          active={activeCategory}
+          onSelect={setActiveCategory}
+        />
+      </View>
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -52,6 +54,7 @@ export function ExerciseGrid({ onPressExercise }: Props) {
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={<Text style={styles.empty}>No exercises found.</Text>}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -59,7 +62,8 @@ export function ExerciseGrid({ onPressExercise }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  searchRow: { paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  searchRow: { paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.sm },
+  filterWrapper: { overflow: 'visible' },
   search: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,

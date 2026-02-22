@@ -40,22 +40,28 @@ export function CategoryFilter({ categories, active, onSelect }: Props) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
+    paddingTop: 2,
     paddingBottom: spacing.md,
     flexDirection: 'row',
     gap: 6,
+    alignItems: 'center',
   },
   chip: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: radius.full,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   chipText: {
     fontSize: 12,
     fontWeight: '600',
     color: colors.textSub,
+    lineHeight: 16,
   },
   chipTextActive: {
     color: colors.white,
