@@ -7,9 +7,10 @@ import { StreakBadge } from '../components/StreakBadge';
 import { AddExerciseModal, AddExerciseModalRef } from '../components/AddExerciseModal';
 import { useStore } from '../store/useStore';
 import { getDatesWithEntries } from '../db/logEntries';
+import { getDayColor, PROGRAM } from '../constants/program';
 
 export function CalendarScreen() {
-  const { selectedDate, setSelectedDate, bumpEntriesVersion, entriesVersion } = useStore();
+  const { selectedDate, setSelectedDate, bumpEntriesVersion, entriesVersion, programDateMap } = useStore();
   const [markedDates, setMarkedDates] = useState<Record<string, any>>({});
   const modalRef = useRef<AddExerciseModalRef>(null);
 
@@ -17,7 +18,11 @@ export function CalendarScreen() {
     const dates = await getDatesWithEntries(year, month);
     const marks: Record<string, any> = {};
     for (const d of dates) {
-      marks[d] = { marked: true, dotColor: colors.primary };
+      // Use program day color if one was done that day, else default
+      const dayNum = programDateMap[d];
+      const programDay = dayNum != null ? PROGRAM.find((p) => p.day === dayNum) : null;
+      const dotColor = programDay ? getDayColor(programDay.title) : colors.primary;
+      marks[d] = { marked: true, dotColor };
     }
     marks[selectedDate] = {
       ...(marks[selectedDate] ?? {}),
@@ -25,12 +30,12 @@ export function CalendarScreen() {
       selectedColor: colors.primary,
     };
     setMarkedDates(marks);
-  }, [selectedDate]);
+  }, [selectedDate, programDateMap]);
 
   useEffect(() => {
     const d = new Date(selectedDate + 'T00:00:00');
     loadMarked(d.getFullYear(), d.getMonth());
-  }, [selectedDate, entriesVersion]);
+  }, [selectedDate, entriesVersion, programDateMap]);
 
   const handleAddExercise = useCallback(() => {
     modalRef.current?.open(selectedDate);

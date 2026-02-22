@@ -11,11 +11,16 @@ import * as Haptics from 'expo-haptics';
 import { ProgramDay, getDayColor } from '../constants/program';
 import { addEntry } from '../db/logEntries';
 import { getAllExercises } from '../db/exercises';
+import { markDayCompleted, setDateDay } from '../db/programProgress';
 import { colors, spacing, typography, radius } from '../constants/theme';
 import { useStore } from '../store/useStore';
 
 export interface WorkoutSessionModalRef {
   open: (day: ProgramDay) => void;
+}
+
+interface WorkoutSessionModalProps {
+  onSaved?: () => void;
 }
 
 interface ExerciseEntry {
@@ -65,14 +70,14 @@ function DateSelector({ date, onChange, color }: { date: string; onChange: (d: s
   );
 }
 
-export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
-  (_, ref) => {
+export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, WorkoutSessionModalProps>(
+  ({ onSaved }, ref) => {
     const sheetRef = useRef<BottomSheetModal>(null);
     const [day, setDay] = useState<ProgramDay | null>(null);
     const [entries, setEntries] = useState<ExerciseEntry[]>([]);
     const [saving, setSaving] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const { unit, bumpEntriesVersion } = useStore();
+    const { unit, bumpEntriesVersion, addCompletedProgramDay, setDateProgramDay } = useStore();
 
     useImperativeHandle(ref, () => ({
       async open(programDay: ProgramDay) {
@@ -101,6 +106,7 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
     }, []);
 
     const handleSaveAll = useCallback(async () => {
+      if (!day) return;
       const toSave = entries.filter((e) => e.weight && parseFloat(e.weight) > 0);
       if (toSave.length === 0) {
         Alert.alert('No weights entered', 'Enter at least one weight to save.');
@@ -125,8 +131,16 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
           });
         }
 
+        // Persist program day completion and date mapping
+        await markDayCompleted(day.day);
+        await setDateDay(selectedDate, day.day);
+        addCompletedProgramDay(day.day);
+        setDateProgramDay(selectedDate, day.day);
+
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         bumpEntriesVersion();
+        onSaved?.();
+
         const todayIso = new Date().toISOString().split('T')[0];
         const dateLabel = selectedDate === todayIso
           ? 'today'
@@ -142,7 +156,7 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
       } finally {
         setSaving(false);
       }
-    }, [entries, unit, selectedDate, bumpEntriesVersion]);
+    }, [day, entries, unit, selectedDate, bumpEntriesVersion, addCompletedProgramDay, setDateProgramDay, onSaved]);
 
     if (!day) return null;
 

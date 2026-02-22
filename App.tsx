@@ -8,12 +8,16 @@ import { initDatabase } from './src/db/database';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { View, ActivityIndicator } from 'react-native';
 import { colors } from './src/constants/theme';
+import { useStore } from './src/store/useStore';
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const loadProgramProgress = useStore((s) => s.loadProgramProgress);
 
   useEffect(() => {
-    initDatabase().then(() => setReady(true));
+    initDatabase()
+      .then(() => loadProgramProgress())
+      .then(() => setReady(true));
   }, []);
 
   if (!ready) {
