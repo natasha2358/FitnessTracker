@@ -72,7 +72,7 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
     const [entries, setEntries] = useState<ExerciseEntry[]>([]);
     const [saving, setSaving] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const { unit } = useStore();
+    const { unit, bumpEntriesVersion } = useStore();
 
     useImperativeHandle(ref, () => ({
       async open(programDay: ProgramDay) {
@@ -126,6 +126,7 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
         }
 
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        bumpEntriesVersion();
         const todayIso = new Date().toISOString().split('T')[0];
         const dateLabel = selectedDate === todayIso
           ? 'today'
@@ -141,7 +142,7 @@ export const WorkoutSessionModal = forwardRef<WorkoutSessionModalRef, {}>(
       } finally {
         setSaving(false);
       }
-    }, [entries, unit, selectedDate]);
+    }, [entries, unit, selectedDate, bumpEntriesVersion]);
 
     if (!day) return null;
 
